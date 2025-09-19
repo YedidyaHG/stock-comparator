@@ -1,12 +1,12 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import plotly.graph_objs as go
+import matplotlib.pyplot as plt
 import datetime
 
 # --- Page Config ---
 st.set_page_config(page_title="Stock & Index Comparator", page_icon="📊", layout="wide")
-st.title("📈 Stock & Index Comparator – Advanced Edition")
+st.title("📈 Stock & Index Comparator (Matplotlib Edition)")
 
 # --- Presets ---
 TOP_10_STOCKS = ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD", "INTC"]
@@ -56,7 +56,7 @@ def cumulative_return(df, investment):
     final_value = (end_price / start_price) * investment
     return round(ret, 2), round(final_value, 2)
 
-# --- Data Processing ---
+# --- Main ---
 results = []
 all_data = {}
 
@@ -78,30 +78,28 @@ if len(tickers) >= 1:
     # --- Closing Prices Chart ---
     if all_data:
         st.subheader("📊 Closing Prices")
-        fig = go.Figure()
+        fig, ax = plt.subplots(figsize=(10, 5))
         for t, df in all_data.items():
-            fig.add_trace(go.Scatter(x=df.index, y=df["Close"], mode="lines", name=t))
-        fig.update_layout(
-            title="Closing Price Comparison",
-            xaxis_title="Date",
-            yaxis_title="Price (USD)",
-            hovermode="x unified"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+            ax.plot(df.index, df["Close"], label=t, linewidth=2)
+        ax.set_title("Closing Price Comparison")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Price (USD)")
+        ax.legend()
+        ax.grid(True, linestyle="--", alpha=0.6)
+        st.pyplot(fig)
 
         # --- Normalized Chart ---
         st.subheader("📊 Normalized Prices (Base = 100)")
-        fig2 = go.Figure()
+        fig2, ax2 = plt.subplots(figsize=(10, 5))
         for t, df in all_data.items():
             normalized = df["Close"] / df["Close"].iloc[0] * 100
-            fig2.add_trace(go.Scatter(x=df.index, y=normalized, mode="lines", name=t))
-        fig2.update_layout(
-            title="Normalized Price Comparison",
-            xaxis_title="Date",
-            yaxis_title="Normalized Value (Base 100)",
-            hovermode="x unified"
-        )
-        st.plotly_chart(fig2, use_container_width=True)
+            ax2.plot(df.index, normalized, label=t, linewidth=2)
+        ax2.set_title("Normalized Price Comparison (Base 100)")
+        ax2.set_xlabel("Date")
+        ax2.set_ylabel("Normalized Value")
+        ax2.legend()
+        ax2.grid(True, linestyle="--", alpha=0.6)
+        st.pyplot(fig2)
 
     # --- Results Table ---
     if results:
